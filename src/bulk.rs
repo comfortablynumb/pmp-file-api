@@ -60,8 +60,10 @@ impl BulkOperations {
     }
 
     async fn upload_single_file(&self, file: BulkFileItem) -> Result<()> {
+        use base64::{Engine as _, engine::general_purpose};
+
         // Decode base64 content
-        let data = base64::decode(&file.content)
+        let data = general_purpose::STANDARD.decode(&file.content)
             .map_err(|e| ApiError::Storage(format!("Failed to decode base64: {}", e)))?;
 
         let mut metadata = FileMetadata::new(file.name.clone(), data.len() as u64);
@@ -94,6 +96,8 @@ impl BulkOperations {
 
     /// Download multiple files
     pub async fn bulk_download(&self, file_names: Vec<String>) -> Result<BulkDownloadResponse> {
+        use base64::{Engine as _, engine::general_purpose};
+
         let mut files = Vec::new();
         let mut failed = Vec::new();
 
@@ -103,7 +107,7 @@ impl BulkOperations {
                     let file_name = metadata.file_name.clone();
                     files.push(BulkDownloadFile {
                         name: file_name,
-                        content: base64::encode(&data),
+                        content: general_purpose::STANDARD.encode(&data),
                         metadata: Some(metadata),
                     });
                 }

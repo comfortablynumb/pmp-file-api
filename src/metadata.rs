@@ -179,6 +179,8 @@ mod tests {
             name_pattern: Some("test".to_string()),
             content_type: Some("text/plain".to_string()),
             custom: None,
+            tags: None,
+            include_deleted: false,
         };
 
         assert!(metadata.matches_filter(&filters));
@@ -187,6 +189,8 @@ mod tests {
             name_pattern: Some("other".to_string()),
             content_type: None,
             custom: None,
+            tags: None,
+            include_deleted: false,
         };
 
         assert!(!metadata.matches_filter(&filters));
