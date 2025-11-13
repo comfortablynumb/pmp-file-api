@@ -1,9 +1,15 @@
 mod api;
+mod caching;
 mod config;
+mod deduplication;
 mod error;
 mod metadata;
+mod metrics;
 mod processing;
+mod sharing;
 mod storage;
+mod versioning;
+mod webhooks;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -11,14 +17,22 @@ use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use crate::caching::FileCache;
 use crate::config::{Config, StorageConfig};
+use crate::metrics::SharedMetrics;
+use crate::sharing::ShareLinkManager;
 use crate::storage::{
     azure::AzureStorage, gcs::GcsStorage, local::LocalStorage, mysql::MySqlStorage,
     postgres::PostgresStorage, redis::RedisStorage, s3::S3Storage, sqlite::SqliteStorage, Storage,
 };
+use crate::webhooks::WebhookManager;
 
 pub struct AppState {
     pub storages: HashMap<String, Arc<dyn Storage>>,
+    pub metrics: SharedMetrics,
+    pub cache: Arc<FileCache>,
+    pub share_links: Arc<ShareLinkManager>,
+    pub webhooks: Arc<WebhookManager>,
 }
 
 #[tokio::main]
@@ -117,8 +131,31 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Initialized {} storage(s)", storages.len());
 
+    // Initialize metrics
+    let metrics = Arc::new(metrics::Metrics::new()?);
+    tracing::info!("Initialized Prometheus metrics");
+
+    // Initialize cache
+    let cache_config = caching::CacheConfig::default();
+    let cache = Arc::new(FileCache::new(cache_config));
+    tracing::info!("Initialized file cache");
+
+    // Initialize share link manager
+    let share_links = Arc::new(ShareLinkManager::new());
+    tracing::info!("Initialized share link manager");
+
+    // Initialize webhook manager
+    let webhooks = Arc::new(WebhookManager::new());
+    tracing::info!("Initialized webhook manager");
+
     // Create application state
-    let state = Arc::new(AppState { storages });
+    let state = Arc::new(AppState {
+        storages,
+        metrics: metrics.clone(),
+        cache,
+        share_links,
+        webhooks,
+    });
 
     // Create router
     let app = api::create_router(state).layer(TraceLayer::new_for_http());
