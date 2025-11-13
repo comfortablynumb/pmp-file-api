@@ -53,11 +53,11 @@ impl RedisStorage {
         let mut conn = self.client.clone();
 
         if let Some(ttl) = self.ttl_seconds {
-            conn.set_ex(key, value, ttl)
+            conn.set_ex::<_, _, ()>(key, value, ttl)
                 .await
                 .map_err(|e| ApiError::Storage(format!("Failed to set value in Redis: {}", e)))?;
         } else {
-            conn.set(key, value)
+            conn.set::<_, _, ()>(key, value)
                 .await
                 .map_err(|e| ApiError::Storage(format!("Failed to set value in Redis: {}", e)))?;
         }
@@ -83,12 +83,12 @@ impl Storage for RedisStorage {
 
         // Add to list of files
         let mut conn = self.client.clone();
-        conn.sadd(&list_key, key)
+        conn.sadd::<_, _, ()>(&list_key, key)
             .await
             .map_err(|e| ApiError::Storage(format!("Failed to add to file list: {}", e)))?;
 
         if let Some(ttl) = self.ttl_seconds {
-            conn.expire(&list_key, ttl as i64)
+            conn.expire::<_, ()>(&list_key, ttl as i64)
                 .await
                 .map_err(|e| ApiError::Storage(format!("Failed to set TTL: {}", e)))?;
         }
@@ -103,16 +103,13 @@ impl Storage for RedisStorage {
         let mut conn = self.client.clone();
 
         // Get file data
-        let data: Vec<u8> = conn
-            .get(&data_key)
-            .await
-            .map_err(|e| {
-                if e.to_string().contains("nil") {
-                    ApiError::FileNotFound(key.to_string())
-                } else {
-                    ApiError::Storage(format!("Failed to get file data: {}", e))
-                }
-            })?;
+        let data: Vec<u8> = conn.get(&data_key).await.map_err(|e| {
+            if e.to_string().contains("nil") {
+                ApiError::FileNotFound(key.to_string())
+            } else {
+                ApiError::Storage(format!("Failed to get file data: {}", e))
+            }
+        })?;
 
         // Get metadata
         let metadata_str: String = conn
@@ -143,16 +140,16 @@ impl Storage for RedisStorage {
         }
 
         // Delete data and metadata
-        conn.del(&data_key)
+        conn.del::<_, ()>(&data_key)
             .await
             .map_err(|e| ApiError::Storage(format!("Failed to delete file data: {}", e)))?;
 
-        conn.del(&metadata_key)
+        conn.del::<_, ()>(&metadata_key)
             .await
             .map_err(|e| ApiError::Storage(format!("Failed to delete metadata: {}", e)))?;
 
         // Remove from list
-        conn.srem(&list_key, key)
+        conn.srem::<_, _, ()>(&list_key, key)
             .await
             .map_err(|e| ApiError::Storage(format!("Failed to remove from file list: {}", e)))?;
 
@@ -204,16 +201,13 @@ impl Storage for RedisStorage {
         let metadata_key = self.get_metadata_key(key);
         let mut conn = self.client.clone();
 
-        let metadata_str: String = conn
-            .get(&metadata_key)
-            .await
-            .map_err(|e| {
-                if e.to_string().contains("nil") {
-                    ApiError::FileNotFound(key.to_string())
-                } else {
-                    ApiError::Storage(format!("Failed to get metadata: {}", e))
-                }
-            })?;
+        let metadata_str: String = conn.get(&metadata_key).await.map_err(|e| {
+            if e.to_string().contains("nil") {
+                ApiError::FileNotFound(key.to_string())
+            } else {
+                ApiError::Storage(format!("Failed to get metadata: {}", e))
+            }
+        })?;
 
         let metadata: FileMetadata = serde_json::from_str(&metadata_str)?;
 

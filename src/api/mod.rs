@@ -21,5 +21,13 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/v1/file/:storage_name/:file_name/metadata",
             get(handlers::get_file_metadata),
         )
+        .route(
+            "/api/v1/file/:storage_name/:file_name/presigned-download",
+            get(handlers::generate_download_url),
+        )
+        .route(
+            "/api/v1/file/:storage_name/:file_name/presigned-upload",
+            get(handlers::generate_upload_url),
+        )
         .with_state(state)
 }

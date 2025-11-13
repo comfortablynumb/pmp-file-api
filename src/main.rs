@@ -2,6 +2,7 @@ mod api;
 mod config;
 mod error;
 mod metadata;
+mod processing;
 mod storage;
 
 use std::collections::HashMap;
@@ -12,7 +13,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::config::{Config, StorageConfig};
 use crate::storage::{
-    local::LocalStorage, mysql::MySqlStorage, postgres::PostgresStorage, s3::S3Storage, Storage,
+    azure::AzureStorage, gcs::GcsStorage, local::LocalStorage, mysql::MySqlStorage,
+    postgres::PostgresStorage, redis::RedisStorage, s3::S3Storage, sqlite::SqliteStorage, Storage,
 };
 
 pub struct AppState {
@@ -69,6 +71,44 @@ async fn main() -> anyhow::Result<()> {
             StorageConfig::MySql { connection_string } => {
                 let mysql_storage = MySqlStorage::new(connection_string).await?;
                 Arc::new(mysql_storage)
+            }
+            StorageConfig::Sqlite { database_url } => {
+                let sqlite_storage = SqliteStorage::new(database_url).await?;
+                Arc::new(sqlite_storage)
+            }
+            StorageConfig::Redis {
+                connection_string,
+                ttl_seconds,
+                key_prefix,
+            } => {
+                let redis_storage =
+                    RedisStorage::new(connection_string, *ttl_seconds, key_prefix.clone()).await?;
+                Arc::new(redis_storage)
+            }
+            StorageConfig::Azure {
+                account,
+                access_key,
+                container,
+                prefix,
+            } => {
+                let azure_storage = AzureStorage::new(
+                    account.clone(),
+                    access_key.clone(),
+                    container.clone(),
+                    prefix.clone(),
+                )
+                .await?;
+                Arc::new(azure_storage)
+            }
+            StorageConfig::Gcs {
+                bucket,
+                prefix,
+                credentials_path,
+            } => {
+                let gcs_storage =
+                    GcsStorage::new(bucket.clone(), prefix.clone(), credentials_path.clone())
+                        .await?;
+                Arc::new(gcs_storage)
             }
         };
 

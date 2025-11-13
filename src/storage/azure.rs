@@ -2,7 +2,6 @@ use async_trait::async_trait;
 use azure_storage::StorageCredentials;
 use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
-use futures::StreamExt;
 
 use crate::error::{ApiError, Result};
 use crate::metadata::FileMetadata;
@@ -83,7 +82,7 @@ impl Storage for AzureStorage {
         let metadata_blob_client = self.container_client.blob_client(metadata_blob_name);
 
         // Download file data
-        let mut stream = blob_client.get().await.map_err(|e| {
+        let data = blob_client.get_content().await.map_err(|e| {
             if e.to_string().contains("404") || e.to_string().contains("BlobNotFound") {
                 ApiError::FileNotFound(key.to_string())
             } else {
@@ -91,25 +90,11 @@ impl Storage for AzureStorage {
             }
         })?;
 
-        let mut data = Vec::new();
-        while let Some(chunk) = stream.data.next().await {
-            let chunk = chunk
-                .map_err(|e| ApiError::Storage(format!("Failed to read chunk: {}", e)))?;
-            data.extend_from_slice(&chunk);
-        }
-
         // Download metadata
-        let mut metadata_stream = metadata_blob_client
-            .get()
+        let metadata_data = metadata_blob_client
+            .get_content()
             .await
             .map_err(|e| ApiError::Storage(format!("Failed to download metadata: {}", e)))?;
-
-        let mut metadata_data = Vec::new();
-        while let Some(chunk) = metadata_stream.data.next().await {
-            let chunk = chunk
-                .map_err(|e| ApiError::Storage(format!("Failed to read metadata chunk: {}", e)))?;
-            metadata_data.extend_from_slice(&chunk);
-        }
 
         let metadata: FileMetadata = serde_json::from_slice(&metadata_data)?;
 
@@ -160,9 +145,10 @@ impl Storage for AzureStorage {
 
         let mut metadata_list = Vec::new();
 
+        use futures_util::StreamExt;
         while let Some(result) = stream.next().await {
-            let response = result
-                .map_err(|e| ApiError::Storage(format!("Failed to list blobs: {}", e)))?;
+            let response =
+                result.map_err(|e| ApiError::Storage(format!("Failed to list blobs: {}", e)))?;
 
             for blob in response.blobs.blobs() {
                 // Skip metadata blobs
@@ -200,20 +186,13 @@ impl Storage for AzureStorage {
         let metadata_blob_name = self.get_metadata_blob_name(key);
         let metadata_blob_client = self.container_client.blob_client(metadata_blob_name);
 
-        let mut stream = metadata_blob_client.get().await.map_err(|e| {
+        let data = metadata_blob_client.get_content().await.map_err(|e| {
             if e.to_string().contains("404") || e.to_string().contains("BlobNotFound") {
                 ApiError::FileNotFound(key.to_string())
             } else {
                 ApiError::Storage(format!("Failed to download metadata: {}", e))
             }
         })?;
-
-        let mut data = Vec::new();
-        while let Some(chunk) = stream.data.next().await {
-            let chunk = chunk
-                .map_err(|e| ApiError::Storage(format!("Failed to read chunk: {}", e)))?;
-            data.extend_from_slice(&chunk);
-        }
 
         let metadata: FileMetadata = serde_json::from_slice(&data)?;
 

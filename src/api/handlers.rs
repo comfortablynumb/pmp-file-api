@@ -170,3 +170,47 @@ pub async fn get_file_metadata(
 
     Ok(Json(metadata))
 }
+
+#[derive(Debug, serde::Deserialize)]
+pub struct PresignedUrlQuery {
+    #[serde(default = "default_expires_in")]
+    pub expires_in: u64,
+}
+
+fn default_expires_in() -> u64 {
+    3600 // 1 hour default
+}
+
+pub async fn generate_download_url(
+    State(state): State<Arc<AppState>>,
+    Path((storage_name, file_name)): Path<(String, String)>,
+    Query(params): Query<PresignedUrlQuery>,
+) -> Result<Json<crate::storage::PresignedUrl>> {
+    let storage = state
+        .storages
+        .get(&storage_name)
+        .ok_or_else(|| ApiError::StorageNotFound(storage_name.clone()))?;
+
+    let presigned_url = storage
+        .generate_presigned_download_url(&file_name, params.expires_in)
+        .await?;
+
+    Ok(Json(presigned_url))
+}
+
+pub async fn generate_upload_url(
+    State(state): State<Arc<AppState>>,
+    Path((storage_name, file_name)): Path<(String, String)>,
+    Query(params): Query<PresignedUrlQuery>,
+) -> Result<Json<crate::storage::PresignedUrl>> {
+    let storage = state
+        .storages
+        .get(&storage_name)
+        .ok_or_else(|| ApiError::StorageNotFound(storage_name.clone()))?;
+
+    let presigned_url = storage
+        .generate_presigned_upload_url(&file_name, params.expires_in)
+        .await?;
+
+    Ok(Json(presigned_url))
+}

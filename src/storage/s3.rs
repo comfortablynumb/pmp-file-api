@@ -2,10 +2,11 @@ use async_trait::async_trait;
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::Client;
 use bytes::Bytes;
+use chrono::Utc;
 
 use crate::error::{ApiError, Result};
 use crate::metadata::FileMetadata;
-use crate::storage::Storage;
+use crate::storage::{PresignedUrl, Storage};
 
 pub struct S3Storage {
     client: Client,
@@ -230,5 +231,67 @@ impl Storage for S3Storage {
 
     async fn get_metadata(&self, key: &str) -> Result<FileMetadata> {
         self.read_metadata(key).await
+    }
+
+    async fn generate_presigned_download_url(
+        &self,
+        key: &str,
+        expires_in_seconds: u64,
+    ) -> Result<PresignedUrl> {
+        let full_key = self.get_full_key(key);
+
+        let presigned_request = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(&full_key)
+            .presigned(
+                aws_sdk_s3::presigning::PresigningConfig::expires_in(
+                    std::time::Duration::from_secs(expires_in_seconds),
+                )
+                .map_err(|e| {
+                    ApiError::Storage(format!("Failed to create presigning config: {}", e))
+                })?,
+            )
+            .await
+            .map_err(|e| ApiError::Storage(format!("Failed to generate presigned URL: {}", e)))?;
+
+        let expires_at = Utc::now() + chrono::Duration::seconds(expires_in_seconds as i64);
+
+        Ok(PresignedUrl {
+            url: presigned_request.uri().to_string(),
+            expires_at,
+        })
+    }
+
+    async fn generate_presigned_upload_url(
+        &self,
+        key: &str,
+        expires_in_seconds: u64,
+    ) -> Result<PresignedUrl> {
+        let full_key = self.get_full_key(key);
+
+        let presigned_request = self
+            .client
+            .put_object()
+            .bucket(&self.bucket)
+            .key(&full_key)
+            .presigned(
+                aws_sdk_s3::presigning::PresigningConfig::expires_in(
+                    std::time::Duration::from_secs(expires_in_seconds),
+                )
+                .map_err(|e| {
+                    ApiError::Storage(format!("Failed to create presigning config: {}", e))
+                })?,
+            )
+            .await
+            .map_err(|e| ApiError::Storage(format!("Failed to generate presigned URL: {}", e)))?;
+
+        let expires_at = Utc::now() + chrono::Duration::seconds(expires_in_seconds as i64);
+
+        Ok(PresignedUrl {
+            url: presigned_request.uri().to_string(),
+            expires_at,
+        })
     }
 }

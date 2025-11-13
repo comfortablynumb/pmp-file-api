@@ -40,3 +40,31 @@ storages:
   mysql-storage:
     type: mysql
     connection_string: mysql://user:password@localhost:3306/filedb
+
+  # SQLite storage example (serverless/edge)
+  sqlite-storage:
+    type: sqlite
+    database_url: sqlite:///tmp/files.db
+    # Or use in-memory: database_url: sqlite::memory:
+
+  # Redis storage example (cache/temporary storage with TTL)
+  redis-storage:
+    type: redis
+    connection_string: redis://localhost:6379
+    ttl_seconds: 3600  # Optional: expire files after 1 hour
+    key_prefix: files:  # Optional: prefix for all keys
+
+  # Azure Blob Storage example
+  azure-storage:
+    type: azure
+    account: myaccount
+    access_key: YOUR_ACCESS_KEY_HERE
+    container: files
+    prefix: uploads/
+
+  # Google Cloud Storage example
+  gcs-storage:
+    type: gcs
+    bucket: my-gcs-bucket
+    prefix: files/
+    credentials_path: /path/to/service-account.json  # Optional: omit to use default credentials

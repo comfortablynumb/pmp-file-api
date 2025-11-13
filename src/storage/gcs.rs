@@ -27,9 +27,7 @@ impl GcsStorage {
         let config = if let Some(cred_path) = credentials_path {
             let cred = CredentialsFile::new_from_file(cred_path)
                 .await
-                .map_err(|e| {
-                    ApiError::Storage(format!("Failed to load GCS credentials: {}", e))
-                })?;
+                .map_err(|e| ApiError::Storage(format!("Failed to load GCS credentials: {}", e)))?;
             ClientConfig::default()
                 .with_credentials(cred)
                 .await
@@ -71,14 +69,10 @@ impl Storage for GcsStorage {
 
         // Upload file data
         let upload_type = UploadType::Simple(Media::new(object_name.clone()));
-        let mut upload_request = UploadObjectRequest {
+        let upload_request = UploadObjectRequest {
             bucket: self.bucket.clone(),
             ..Default::default()
         };
-
-        if let Some(content_type) = &metadata.content_type {
-            upload_request.content_type = Some(content_type.clone());
-        }
 
         self.client
             .upload_object(&upload_request, data.to_vec(), &upload_type)
@@ -90,7 +84,6 @@ impl Storage for GcsStorage {
         let metadata_upload_type = UploadType::Simple(Media::new(metadata_object_name.clone()));
         let metadata_upload_request = UploadObjectRequest {
             bucket: self.bucket.clone(),
-            content_type: Some("application/json".to_string()),
             ..Default::default()
         };
 
@@ -142,7 +135,9 @@ impl Storage for GcsStorage {
                 &Range::default(),
             )
             .await
-            .map_err(|e| ApiError::Storage(format!("Failed to download metadata from GCS: {}", e)))?;
+            .map_err(|e| {
+                ApiError::Storage(format!("Failed to download metadata from GCS: {}", e))
+            })?;
 
         let metadata: FileMetadata = serde_json::from_slice(&metadata_data)?;
 

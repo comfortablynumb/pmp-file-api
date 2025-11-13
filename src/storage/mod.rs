@@ -14,7 +14,7 @@ use chrono::{DateTime, Utc};
 use crate::error::Result;
 use crate::metadata::FileMetadata;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PresignedUrl {
     pub url: String,
     pub expires_at: DateTime<Utc>,

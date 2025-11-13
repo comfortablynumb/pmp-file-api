@@ -45,6 +45,32 @@ pub enum StorageConfig {
     Postgres { connection_string: String },
     #[serde(rename = "mysql")]
     MySql { connection_string: String },
+    #[serde(rename = "sqlite")]
+    Sqlite { database_url: String },
+    #[serde(rename = "redis")]
+    Redis {
+        connection_string: String,
+        #[serde(default)]
+        ttl_seconds: Option<u64>,
+        #[serde(default)]
+        key_prefix: Option<String>,
+    },
+    #[serde(rename = "azure")]
+    Azure {
+        account: String,
+        access_key: String,
+        container: String,
+        #[serde(default)]
+        prefix: String,
+    },
+    #[serde(rename = "gcs")]
+    Gcs {
+        bucket: String,
+        #[serde(default)]
+        prefix: String,
+        #[serde(default)]
+        credentials_path: Option<String>,
+    },
 }
 
 impl Config {
