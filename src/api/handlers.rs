@@ -126,6 +126,8 @@ pub async fn list_files(
         name_pattern: params.name_pattern,
         content_type: params.content_type,
         custom: None,
+        tags: None,
+        include_deleted: false,
     };
 
     let filtered_files: Vec<FileMetadata> = files

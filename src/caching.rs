@@ -108,8 +108,7 @@ impl FileCache {
         CacheStats {
             entry_count: self.cache.entry_count(),
             weighted_size: self.cache.weighted_size(),
-            hit_rate: self.cache.hit_count() as f64
-                / (self.cache.hit_count() + self.cache.miss_count()) as f64,
+            hit_rate: 0.0, // Moka doesn't expose hit_count/miss_count in this version
         }
     }
 

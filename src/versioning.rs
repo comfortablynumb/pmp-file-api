@@ -89,7 +89,7 @@ impl VersioningService {
 
     /// Restore a specific version as the latest version
     pub async fn restore_version(&self, key: &str, version_id: &Uuid) -> Result<FileMetadata> {
-        let (data, old_metadata) = self.get_version(key, version_id).await?;
+        let (data, _old_metadata) = self.get_version(key, version_id).await?;
 
         // Create a new version based on the old version's content
         let (_, current_metadata) = self.storage.get(key).await?;

@@ -1,7 +1,7 @@
 // File deduplication using content hashing
 #![allow(dead_code)]
 
-use crate::error::{ApiError, Result};
+use crate::error::Result;
 use crate::metadata::FileMetadata;
 use crate::storage::Storage;
 use bytes::Bytes;

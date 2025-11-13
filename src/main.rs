@@ -1,11 +1,14 @@
 mod api;
+mod bulk;
 mod caching;
 mod config;
 mod deduplication;
 mod error;
+mod health;
 mod metadata;
 mod metrics;
 mod processing;
+mod search;
 mod sharing;
 mod storage;
 mod versioning;

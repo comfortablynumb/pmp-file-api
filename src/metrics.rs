@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 use prometheus::{
-    Counter, CounterVec, Histogram, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec,
+    Counter, CounterVec, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec,
     Opts, Registry,
 };
 use std::sync::Arc;

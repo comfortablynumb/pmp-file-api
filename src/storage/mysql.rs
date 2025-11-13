@@ -94,14 +94,11 @@ impl Storage for MySqlStorage {
         let created_at = row.get("created_at");
         let updated_at = row.get("updated_at");
 
-        let metadata = FileMetadata {
-            file_name,
-            content_type,
-            size: size as u64,
-            created_at,
-            updated_at,
-            custom,
-        };
+        let mut metadata = FileMetadata::new(file_name, size as u64);
+        metadata.content_type = content_type;
+        metadata.created_at = created_at;
+        metadata.updated_at = updated_at;
+        metadata.custom = custom;
 
         Ok((Bytes::from(data), metadata))
     }
@@ -152,14 +149,13 @@ impl Storage for MySqlStorage {
 
         let mut metadata_list = Vec::new();
         for row in rows {
-            let metadata = FileMetadata {
-                file_name: row.get("file_name"),
-                content_type: row.get("content_type"),
-                size: row.get::<i64, _>("size") as u64,
-                created_at: row.get("created_at"),
-                updated_at: row.get("updated_at"),
-                custom: row.get("metadata"),
-            };
+            let file_name: String = row.get("file_name");
+            let size: i64 = row.get("size");
+            let mut metadata = FileMetadata::new(file_name, size as u64);
+            metadata.content_type = row.get("content_type");
+            metadata.created_at = row.get("created_at");
+            metadata.updated_at = row.get("updated_at");
+            metadata.custom = row.get("metadata");
             metadata_list.push(metadata);
         }
 
@@ -195,13 +191,14 @@ impl Storage for MySqlStorage {
         .map_err(|e| ApiError::Storage(format!("Failed to fetch metadata: {}", e)))?
         .ok_or_else(|| ApiError::FileNotFound(key.to_string()))?;
 
-        Ok(FileMetadata {
-            file_name: row.get("file_name"),
-            content_type: row.get("content_type"),
-            size: row.get::<i64, _>("size") as u64,
-            created_at: row.get("created_at"),
-            updated_at: row.get("updated_at"),
-            custom: row.get("metadata"),
-        })
+        let file_name: String = row.get("file_name");
+        let size: i64 = row.get("size");
+        let mut metadata = FileMetadata::new(file_name, size as u64);
+        metadata.content_type = row.get("content_type");
+        metadata.created_at = row.get("created_at");
+        metadata.updated_at = row.get("updated_at");
+        metadata.custom = row.get("metadata");
+
+        Ok(metadata)
     }
 }
