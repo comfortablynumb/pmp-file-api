@@ -1,0 +1,32 @@
+# PMP File API Configuration Example
+
+server:
+  host: "0.0.0.0"
+  port: 3000
+
+storages:
+  # S3 storage example
+  my-s3-storage:
+    type: s3
+    bucket: my-bucket-name
+    region: us-east-1
+    prefix: files/
+    # Optional: custom endpoint for S3-compatible services (MinIO, LocalStack, etc.)
+    # endpoint: http://localhost:9000
+
+  # Another S3 storage for different purposes
+  production-assets:
+    type: s3
+    bucket: production-assets
+    region: eu-west-1
+    prefix: assets/
+
+  # Local filesystem storage example
+  local-dev-storage:
+    type: local
+    path: /tmp/pmp-files
+
+  # Another local storage
+  local-uploads:
+    type: local
+    path: ./uploads
