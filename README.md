@@ -4,7 +4,11 @@ PMP File API: A flexible Rust API to upload, download, and manage files using va
 
 ## Features
 
-- **Multiple Storage Backends**: Support for AWS S3, S3-compatible services (MinIO, LocalStack), and local filesystem
+- **Multiple Storage Backends**:
+  - AWS S3 and S3-compatible services (MinIO, LocalStack)
+  - Local filesystem storage
+  - PostgreSQL database storage
+  - MySQL database storage
 - **YAML Configuration**: Easy-to-configure storage backends via YAML
 - **Custom Metadata**: Attach custom JSON metadata to files
 - **File Filtering**: List and filter files by name, content type, and custom metadata
@@ -18,6 +22,8 @@ PMP File API: A flexible Rust API to upload, download, and manage files using va
 
 - Rust 1.70+ (2021 edition)
 - For S3 storage: AWS credentials configured or S3-compatible service
+- For PostgreSQL storage: PostgreSQL 12+ database
+- For MySQL storage: MySQL 8.0+ or MariaDB 10.5+ database
 
 ### Installation
 
@@ -57,6 +63,7 @@ server:
   port: 3000
 
 storages:
+  # S3 Storage
   my-s3:
     type: s3
     bucket: my-bucket
@@ -65,10 +72,47 @@ storages:
     # Optional: for S3-compatible services
     # endpoint: http://localhost:9000
 
+  # Local Filesystem Storage
   local-storage:
     type: local
     path: /tmp/files
+
+  # PostgreSQL Storage
+  postgres-storage:
+    type: postgres
+    connection_string: postgresql://user:password@localhost:5432/filedb
+
+  # MySQL Storage
+  mysql-storage:
+    type: mysql
+    connection_string: mysql://user:password@localhost:3306/filedb
 ```
+
+### Storage Backend Details
+
+#### S3 Storage
+- Stores files in Amazon S3 or S3-compatible services (MinIO, LocalStack)
+- Metadata is stored as a separate JSON file alongside each file
+- Requires AWS credentials or equivalent for S3-compatible services
+
+#### Local Filesystem Storage
+- Stores files directly on the local filesystem
+- Metadata is stored as JSON files with `.metadata.json` extension
+- Best for development and single-server deployments
+
+#### PostgreSQL Storage
+- Stores files and metadata in a PostgreSQL database
+- Files are stored as BYTEA (binary data)
+- Metadata is stored as JSONB for efficient querying
+- Automatically creates the required table on first connection
+- Suitable for transactional workloads and complex queries
+
+#### MySQL Storage
+- Stores files and metadata in a MySQL/MariaDB database
+- Files are stored as LONGBLOB (binary data)
+- Metadata is stored as JSON
+- Automatically creates the required table on first connection
+- Good for traditional relational database deployments
 
 ### Environment Variables
 

@@ -41,6 +41,10 @@ pub enum StorageConfig {
     },
     #[serde(rename = "local")]
     Local { path: String },
+    #[serde(rename = "postgres")]
+    Postgres { connection_string: String },
+    #[serde(rename = "mysql")]
+    MySql { connection_string: String },
 }
 
 impl Config {

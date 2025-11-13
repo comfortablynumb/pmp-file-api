@@ -11,7 +11,9 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::config::{Config, StorageConfig};
-use crate::storage::{local::LocalStorage, s3::S3Storage, Storage};
+use crate::storage::{
+    local::LocalStorage, mysql::MySqlStorage, postgres::PostgresStorage, s3::S3Storage, Storage,
+};
 
 pub struct AppState {
     pub storages: HashMap<String, Arc<dyn Storage>>,
@@ -59,6 +61,14 @@ async fn main() -> anyhow::Result<()> {
             StorageConfig::Local { path } => {
                 let local_storage = LocalStorage::new(path).await?;
                 Arc::new(local_storage)
+            }
+            StorageConfig::Postgres { connection_string } => {
+                let postgres_storage = PostgresStorage::new(connection_string).await?;
+                Arc::new(postgres_storage)
+            }
+            StorageConfig::MySql { connection_string } => {
+                let mysql_storage = MySqlStorage::new(connection_string).await?;
+                Arc::new(mysql_storage)
             }
         };
 
