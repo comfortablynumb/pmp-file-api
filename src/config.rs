@@ -53,10 +53,6 @@ impl Config {
 
         Ok(config)
     }
-
-    pub fn get_storage(&self, name: &str) -> Option<&StorageConfig> {
-        self.storages.get(name)
-    }
 }
 
 #[cfg(test)]

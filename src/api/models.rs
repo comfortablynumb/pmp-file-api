@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
 
 use crate::metadata::FileMetadata;
 
@@ -7,12 +6,6 @@ use crate::metadata::FileMetadata;
 pub struct FileListResponse {
     pub files: Vec<FileMetadata>,
     pub count: usize,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct FileUploadRequest {
-    #[serde(default)]
-    pub metadata: JsonValue,
 }
 
 #[derive(Debug, Serialize)]

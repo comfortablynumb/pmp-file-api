@@ -143,7 +143,7 @@ impl Storage for S3Storage {
 
         let metadata = self.read_metadata(key).await?;
 
-        Ok((Bytes::from(data.into_bytes()), metadata))
+        Ok((data.into_bytes(), metadata))
     }
 
     async fn delete(&self, key: &str) -> Result<()> {
