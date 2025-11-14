@@ -17,6 +17,9 @@ pub enum ApiError {
     #[error("File not found: {0}")]
     FileNotFound(String),
 
+    #[error("Not found: {0}")]
+    NotFound(String),
+
     #[error("Invalid metadata: {0}")]
     InvalidMetadata(String),
 
@@ -38,6 +41,7 @@ impl IntoResponse for ApiError {
         let (status, error_message) = match self {
             ApiError::FileNotFound(_) => (StatusCode::NOT_FOUND, self.to_string()),
             ApiError::StorageNotFound(_) => (StatusCode::NOT_FOUND, self.to_string()),
+            ApiError::NotFound(_) => (StatusCode::NOT_FOUND, self.to_string()),
             ApiError::InvalidMetadata(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::Serialization(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::Config(_) => (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()),
