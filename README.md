@@ -27,6 +27,80 @@ PMP File API: A flexible Rust API to upload, download, and manage files using va
 - **Async/Await**: Built with Tokio for high-performance async I/O
 - **Type-Safe**: Leverages Rust's type system for safety and reliability
 
+### Enterprise Features
+
+- **File Versioning**: Track file history with parent-child relationships
+- **Soft Delete/Trash**: Recoverable file deletion with restore capability
+- **File Sharing**: Time-limited, password-protected share links with download limits
+- **Deduplication**: SHA-256 hash-based storage optimization
+- **Bulk Operations**: Upload, download, and delete multiple files efficiently
+- **Full-Text Search**: Query files by metadata, tags, and content type
+- **Tagging System**: Organize files with custom tags
+- **Caching**: In-memory cache with Moka for high-performance reads
+- **Webhooks**: Event-driven notifications for file operations
+- **Metrics**: Prometheus integration for comprehensive monitoring
+- **Health Checks**: Per-storage and system-wide health monitoring
+- **Rate Limiting**: Built-in rate limiting (10 req/sec with burst capacity)
+
+## Documentation
+
+### 📚 Complete Documentation
+
+For comprehensive documentation including API reference, examples, and use cases:
+- **[Complete Documentation](DOCUMENTATION.md)** - Full API reference with 30+ endpoints
+- **[Advanced Features Guide](ADVANCED_FEATURES.md)** - Detailed feature implementation guide
+- **[Examples Directory](examples/)** - Practical code examples in Bash, Python, and TypeScript
+
+### 🚀 Quick Examples
+
+**Upload a file:**
+```bash
+curl -X PUT http://localhost:3000/api/v1/file/my-storage \
+  -F "file=@document.pdf" \
+  -F 'metadata={"project": "alpha", "status": "draft"}'
+```
+
+**Search files:**
+```bash
+curl -X POST http://localhost:3000/api/v1/search/my-storage \
+  -H "Content-Type: application/json" \
+  -d '{"query": "report", "tags": ["finance", "q4"]}'
+```
+
+**Create share link:**
+```bash
+curl -X POST http://localhost:3000/api/v1/share/my-storage \
+  -H "Content-Type: application/json" \
+  -d '{"file_name": "report.pdf", "expires_in_seconds": 86400, "password": "secret"}'
+```
+
+**Bulk operations:**
+```bash
+curl -X POST http://localhost:3000/api/v1/bulk/my-storage/upload \
+  -H "Content-Type: application/json" \
+  -d '{"files": [{"name": "file1.txt", "content": "BASE64_DATA"}]}'
+```
+
+### 🐍 Python Client
+
+```python
+from file_api_client import FileAPIClient
+
+api = FileAPIClient('http://localhost:3000')
+
+# Upload
+api.upload('my-storage', 'report.pdf', metadata={'project': 'alpha'})
+
+# Search
+results = api.search('my-storage', query='report', tags=['finance'])
+
+# Create share link
+share = api.create_share_link('my-storage', 'report.pdf',
+                              expires_in_seconds=86400, password='secret')
+```
+
+See [examples/python/](examples/python/) for complete examples.
+
 ## Quick Start
 
 ### Prerequisites
