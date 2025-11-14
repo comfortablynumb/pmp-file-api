@@ -2,8 +2,8 @@
 #![allow(dead_code)]
 
 use prometheus::{
-    Counter, CounterVec, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec,
-    Opts, Registry,
+    Counter, CounterVec, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts,
+    Registry,
 };
 use std::sync::Arc;
 
@@ -92,7 +92,8 @@ impl Metrics {
         )?;
         registry.register(Box::new(files_deleted.clone()))?;
 
-        let files_listed = IntCounter::new("files_listed_total", "Total number of file list operations")?;
+        let files_listed =
+            IntCounter::new("files_listed_total", "Total number of file list operations")?;
         registry.register(Box::new(files_listed.clone()))?;
 
         // File sizes
@@ -129,7 +130,10 @@ impl Metrics {
         registry.register(Box::new(versions_created.clone()))?;
 
         let versions_restored = IntCounterVec::new(
-            Opts::new("file_versions_restored_total", "Total file versions restored"),
+            Opts::new(
+                "file_versions_restored_total",
+                "Total file versions restored",
+            ),
             &["storage"],
         )?;
         registry.register(Box::new(versions_restored.clone()))?;
@@ -187,7 +191,8 @@ impl Metrics {
         registry.register(Box::new(cache_misses.clone()))?;
 
         // System metrics
-        let active_connections = IntGauge::new("active_connections", "Number of active connections")?;
+        let active_connections =
+            IntGauge::new("active_connections", "Number of active connections")?;
         registry.register(Box::new(active_connections.clone()))?;
 
         let total_files = IntGaugeVec::new(
@@ -246,8 +251,14 @@ mod tests {
         let metrics = Metrics::new().unwrap();
 
         // Increment some metrics
-        metrics.files_uploaded.with_label_values(&["test-storage"]).inc();
-        metrics.files_downloaded.with_label_values(&["test-storage"]).inc();
+        metrics
+            .files_uploaded
+            .with_label_values(&["test-storage"])
+            .inc();
+        metrics
+            .files_downloaded
+            .with_label_values(&["test-storage"])
+            .inc();
 
         // Gather metrics
         let families = metrics.gather();

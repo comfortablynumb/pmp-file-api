@@ -201,11 +201,7 @@ impl FileProcessor {
             return Ok(());
         }
 
-        let host = self
-            .config
-            .clamav_host
-            .as_deref()
-            .unwrap_or("localhost");
+        let host = self.config.clamav_host.as_deref().unwrap_or("localhost");
         let port = self.config.clamav_port.unwrap_or(3310);
         let host_address = format!("{}:{}", host, port);
 

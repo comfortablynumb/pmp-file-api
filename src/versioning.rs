@@ -34,7 +34,9 @@ impl VersioningService {
             .await?;
 
         // Update the "latest" version pointer
-        self.storage.put(key, Bytes::new(), new_metadata.clone()).await?;
+        self.storage
+            .put(key, Bytes::new(), new_metadata.clone())
+            .await?;
 
         Ok(new_metadata)
     }
@@ -118,7 +120,10 @@ impl VersioningService {
                         return self.storage.get(&version_key).await;
                     }
                 }
-                Err(ApiError::NotFound(format!("No valid version found for {}", key)))
+                Err(ApiError::NotFound(format!(
+                    "No valid version found for {}",
+                    key
+                )))
             }
         }
     }
@@ -134,18 +139,28 @@ mod tests {
     #[ignore] // TODO: Fix versioning test - needs proper setup
     async fn test_version_creation() {
         let dir = tempdir().unwrap();
-        let storage = Arc::new(LocalStorage::new(dir.path().to_str().unwrap()).await.unwrap());
+        let storage = Arc::new(
+            LocalStorage::new(dir.path().to_str().unwrap())
+                .await
+                .unwrap(),
+        );
         let versioning = VersioningService::new(storage.clone());
 
         let data = Bytes::from("version 1");
         let metadata = FileMetadata::new("test.txt".to_string(), data.len() as u64);
 
         // Create first version
-        storage.put("test.txt", data.clone(), metadata.clone()).await.unwrap();
+        storage
+            .put("test.txt", data.clone(), metadata.clone())
+            .await
+            .unwrap();
 
         // Create second version
         let data_v2 = Bytes::from("version 2");
-        let metadata_v2 = versioning.create_version("test.txt", data_v2.clone(), &metadata).await.unwrap();
+        let metadata_v2 = versioning
+            .create_version("test.txt", data_v2.clone(), &metadata)
+            .await
+            .unwrap();
 
         assert_eq!(metadata_v2.version, 2);
         assert!(metadata_v2.parent_version_id.is_some());

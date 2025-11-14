@@ -194,7 +194,7 @@ let webhook_manager = WebhookManager::new();
 // Register webhook
 let config = WebhookConfig {
     url: "https://example.com/webhook".to_string(),
-    events: vec![WebhookEvent::FileUploaded, WebhookEvent::FileDeleted],
+    events: vec![WebhookEvent::Uploaded, WebhookEvent::Deleted],
     headers: HashMap::from([("Authorization".to_string(), "Bearer token".to_string())]),
     enabled: true,
 };
@@ -203,7 +203,7 @@ webhook_manager.register_webhook("my-webhook".to_string(), config).await?;
 
 // Trigger event
 let payload = WebhookPayload {
-    event: WebhookEvent::FileUploaded,
+    event: WebhookEvent::Uploaded,
     timestamp: Utc::now(),
     storage_name: "my-storage".to_string(),
     file_key: "file.txt".to_string(),

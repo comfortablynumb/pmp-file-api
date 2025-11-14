@@ -12,11 +12,11 @@ use tokio::sync::RwLock;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum WebhookEvent {
-    FileUploaded,
-    FileDownloaded,
-    FileDeleted,
-    FileRestored,
-    FileVersionCreated,
+    Uploaded,
+    Downloaded,
+    Deleted,
+    Restored,
+    VersionCreated,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,9 +124,10 @@ async fn send_webhook(
         request = request.header(key, value);
     }
 
-    let response = request.send().await.map_err(|e| {
-        crate::error::ApiError::Storage(format!("Failed to send webhook: {}", e))
-    })?;
+    let response = request
+        .send()
+        .await
+        .map_err(|e| crate::error::ApiError::Storage(format!("Failed to send webhook: {}", e)))?;
 
     if !response.status().is_success() {
         return Err(crate::error::ApiError::Storage(format!(
@@ -148,7 +149,7 @@ mod tests {
 
         let config = WebhookConfig {
             url: "https://example.com/webhook".to_string(),
-            events: vec![WebhookEvent::FileUploaded],
+            events: vec![WebhookEvent::Uploaded],
             headers: HashMap::new(),
             enabled: true,
         };
@@ -166,7 +167,7 @@ mod tests {
     #[test]
     fn test_webhook_payload_serialization() {
         let payload = WebhookPayload {
-            event: WebhookEvent::FileUploaded,
+            event: WebhookEvent::Uploaded,
             timestamp: Utc::now(),
             storage_name: "my-storage".to_string(),
             file_key: "test.txt".to_string(),
@@ -175,6 +176,6 @@ mod tests {
         };
 
         let json = serde_json::to_string(&payload).unwrap();
-        assert!(json.contains("file_uploaded"));
+        assert!(json.contains("uploaded"));
     }
 }

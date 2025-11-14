@@ -66,7 +66,11 @@ impl SearchEngine {
 
         // Check name pattern
         if let Some(pattern) = &query.name_pattern {
-            if !file.file_name.to_lowercase().contains(&pattern.to_lowercase()) {
+            if !file
+                .file_name
+                .to_lowercase()
+                .contains(&pattern.to_lowercase())
+            {
                 return false;
             }
         }
@@ -75,11 +79,7 @@ impl SearchEngine {
         if let Some(q) = &query.query {
             let q_lower = q.to_lowercase();
             let matches_name = file.file_name.to_lowercase().contains(&q_lower);
-            let matches_custom = file
-                .custom
-                .to_string()
-                .to_lowercase()
-                .contains(&q_lower);
+            let matches_custom = file.custom.to_string().to_lowercase().contains(&q_lower);
 
             if !matches_name && !matches_custom {
                 return false;

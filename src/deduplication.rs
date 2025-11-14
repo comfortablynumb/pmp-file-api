@@ -54,7 +54,9 @@ impl DeduplicationManager {
             );
 
             // Store only metadata, not the actual file content
-            self.storage.put(key, Bytes::new(), metadata.clone()).await?;
+            self.storage
+                .put(key, Bytes::new(), metadata.clone())
+                .await?;
 
             return Ok((true, metadata)); // true = deduplicated
         }
@@ -176,7 +178,11 @@ mod tests {
     #[tokio::test]
     async fn test_deduplication() {
         let dir = tempdir().unwrap();
-        let storage = Arc::new(LocalStorage::new(dir.path().to_str().unwrap()).await.unwrap());
+        let storage = Arc::new(
+            LocalStorage::new(dir.path().to_str().unwrap())
+                .await
+                .unwrap(),
+        );
         let dedup = DeduplicationManager::new(storage.clone());
 
         let data = Bytes::from("duplicate content");
